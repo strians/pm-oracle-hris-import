@@ -1,0 +1,26 @@
+{
+  "name": "pm-oracle-hris-import",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "pkg": "pkg --targets=node10-win-x64 --output=build/pm-oracle-hris-import.exe",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "rc": "^1.2.8",
+    "sequelize": "^5.19.2",
+    "tedious": "^6.4.0"
+  },
+  "devDependencies": {
+    "pkg": "^4.4.0"
+  },
+  "pkg": {
+    "scripts": "**/*.js",
+    "targets": [
+      "node10-win-x64"
+    ]
+  }
+}
