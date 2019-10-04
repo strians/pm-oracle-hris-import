@@ -79,7 +79,7 @@ class Application {
       }
 
       // Filter out non-CSV files
-      let fileList = list.filter(file => {
+      const fileList = list.filter(file => {
         let match = file.match(fileRegexp);
 
         if (!match) {
@@ -97,7 +97,7 @@ class Application {
       });
 
       // Sort files by timestamp in name
-      fileList = fileList.map(f => {
+      const orderedFileList = fileList.map(f => {
         let match = f.match(fileRegexp);
         let m = moment(match[1], 'YYYYMMDDHHmmss');
 
@@ -109,7 +109,8 @@ class Application {
         return b.moment.isBefore(a.moment);
       }).map(f => f.fileName);
 
-      async.eachSeries(fileList, async (fileName) => {
+      // Process each file sequentially
+      async.eachSeries(orderedFileList, async (fileName) => {
         return this.processExtract(fileName);
       }).then(actions.resolve).catch(actions.reject);
     });
@@ -130,8 +131,7 @@ class Application {
 
     return async.eachLimit(rows, 10, async (row) => {
       console.log(`Upserting ${row['EMP ID']}`);
-      return this.models.Employee.upsert(row).then((emp, created) => {
-      });
+      return this.models.Employee.upsert(row);
     });
   }
 }
