@@ -7,9 +7,10 @@ const Sequelize = require('sequelize');
 const rc = require('rc');
 const async = require('async');
 const moment = require('moment');
+const csvjson = require('csvjson');
 
 const generateConfigHelp = require('./generate-config-help.js');
-const models = require('./models.js');
+const orm = require('./orm.js');
 
 class Application {
   constructor(appName) {
@@ -37,7 +38,26 @@ class Application {
       return Promise.reject(generateConfigHelp(this.appName));
     }
 
-    return this.processConfigs();
+    let sequelize = new Sequelize(this.config.mssql.database, this.config.mssql.username, this.config.mssql.password, {
+      host: this.config.mssql.hostname,
+      dialect: 'mssql',
+      logging: false
+    });
+
+    this.models = orm.load(sequelize, this.config);
+    this.sequelize = sequelize;
+
+    let actions = {};
+    let promise = new Promise((resolve, reject) => {
+      actions.resolve = resolve;
+      actions.reject = reject;
+    });
+
+    sequelize.sync().then(() => {
+      return this.processConfigs();
+    }).then(actions.resolve).catch(actions.reject);
+
+    return promise;
   }
 
   // Locate and process Oracle extracts in the designated drop folder
@@ -79,7 +99,6 @@ class Application {
       // Sort files by timestamp in name
       fileList = fileList.map(f => {
         let match = f.match(fileRegexp);
-
         let m = moment(match[1], 'YYYYMMDDHHmmss');
 
         return {
@@ -98,13 +117,22 @@ class Application {
     return promise;
   }
 
+  // Upsert rows in the given file
   processExtract(fileName) {
     const baseDir = this.config.fileDropFolder;
     const filePath = path.join(baseDir, fileName);
+    const data = fs.readFileSync(filePath);
 
-    console.log(`Processing ${filePath}`);
+    const rows = csvjson.toObject(data.toString(), {
+      delimiter: ',',
+      quote: '"'
+    });
 
-    return Promise.resolve();
+    return async.eachLimit(rows, 10, async (row) => {
+      console.log(`Upserting ${row['EMP ID']}`);
+      return this.models.Employee.upsert(row).then((emp, created) => {
+      });
+    });
   }
 }
 
