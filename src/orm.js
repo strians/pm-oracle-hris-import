@@ -8,7 +8,23 @@ module.exports = {
         allowNull: false,
         unique: `${config.mssql.table}-Import-FileNameIndex`
       },
-      'Rows': {
+      'Successful': {
+        type: Sequelize.STRING(1),
+        allowNull: false
+      },
+      'Status Description': {
+        type: Sequelize.STRING(1000),
+        allowNull: false
+      },
+      'Rows Processed': {
+        type: Sequelize.INTEGER,
+        allowNull: false
+      },
+      'Active Employees': {
+        type: Sequelize.INTEGER,
+        allowNull: false
+      },
+      'Term Employees': {
         type: Sequelize.INTEGER,
         allowNull: false
       }
