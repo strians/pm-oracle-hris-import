@@ -1,4 +1,12 @@
-// Require tedious so it is included in pkg build
-require('tedious');
+const APP = 'pmoracle';
+const Application = require('./src/application.js');
 
-const Sequelize = require('sequelize');
+let app = new Application(APP);
+
+app.run().then(() => {
+  console.log('Done');
+  process.exit(0);
+}).catch(err => {
+  console.error(err);
+  process.exit(1);
+});
