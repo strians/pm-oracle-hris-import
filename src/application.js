@@ -96,6 +96,10 @@ class Application {
         return true;
       });
 
+      if (fileList.length === 0) {
+        return actions.resolve();
+      }
+
       // Sort files by timestamp in name
       const orderedFileList = fileList.map(f => {
         let match = f.match(fileRegexp);
