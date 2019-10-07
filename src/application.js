@@ -55,6 +55,10 @@ class Application {
 
     sequelize.sync().then(() => {
       return this.processConfigs();
+    }).then(() => {
+      // Stub
+      // Go through config, generate output CSVs
+      return Promise.resolve();
     }).then(actions.resolve).catch(actions.reject);
 
     return promise;
