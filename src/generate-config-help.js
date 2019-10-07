@@ -1,5 +1,5 @@
 module.exports = (appName) => {
-return `
+  return `
 No config files were found. Configuration is loaded from:
  1) Any file passed via --config argument
  2) Any .${appName}rc file found in local or parent directories
