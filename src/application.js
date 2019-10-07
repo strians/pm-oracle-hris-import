@@ -126,6 +126,9 @@ class Application {
   processExtract(fileName) {
     const baseDir = this.config.fileDropFolder;
     const filePath = path.join(baseDir, fileName);
+    const ext = path.extname(fileName);
+    const baseFileName = path.basename(fileName, ext);
+    const processedPath = path.join(baseDir, `${baseFileName} - Processed${ext}`);
     const data = fs.readFileSync(filePath);
 
     const rows = csvjson.toObject(data.toString(), {
@@ -133,9 +136,26 @@ class Application {
       quote: '"'
     });
 
+    // Upsert all rows, then rename the file so it isn't processed twice
     return async.eachLimit(rows, 10, async (row) => {
       console.log(`Upserting ${row['EMP ID']}`);
       return this.models.Employee.upsert(row);
+    }).then(() => {
+      let actions = {};
+      let promise = new Promise((resolve, reject) => {
+        actions.resolve = resolve;
+        actions.reject = reject;
+      });
+
+      fs.rename(filePath, processedPath, (err) => {
+        if (err) {
+          return actions.reject(err);
+        } else {
+          actions.resolve();
+        }
+      });
+
+      return promise;
     });
   }
 }
