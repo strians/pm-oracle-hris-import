@@ -8,6 +8,9 @@ const rc = require('rc');
 const async = require('async');
 const moment = require('moment');
 const csvjson = require('csvjson');
+const _ = require('lodash');
+const SpringCM = require('springcm-node-sdk');
+const s2s = require('string-to-stream');
 
 const generateConfigHelp = require('./generate-config-help.js');
 const orm = require('./orm.js');
@@ -56,12 +59,82 @@ class Application {
     sequelize.sync().then(() => {
       return this.processConfigs();
     }).then(() => {
-      // Stub
-      // Go through config, generate output CSVs
-      return Promise.resolve();
+      return this.generateOutputCsvFiles();
     }).then(actions.resolve).catch(actions.reject);
 
     return promise;
+  }
+
+  generateOutputCsvFiles() {
+    const hospitals = Object.keys(this.config.hospitalMapping);
+
+    return async.eachSeries(hospitals, async (hospital) => {
+      const mapping = this.config.hospitalMapping[hospital];
+      const masterKeys = mapping.columnMapping.map(m => m.master);
+      const targetMapping = mapping.columnMapping.reduce((result, m) => {
+        result[m.master] = m.target;
+        return result;
+      }, {});
+
+      const springCm = new SpringCM({
+        clientId: mapping.clientId,
+        clientSecret: mapping.clientSecret,
+        dataCenter: mapping.dataCenter
+      });
+
+      return this.models.Employee.findAll({
+        where: {
+          BusinessUnit: hospital
+        }
+      }).then((results) => {
+        let actions = {};
+        let promise = new Promise((resolve, reject) => {
+          actions.resolve = resolve;
+          actions.reject = reject;
+        });
+
+        // Generate data rows
+        const rows = results.map(row => {
+          const filtered = _.pickBy(row.dataValues, (value, key) => masterKeys.indexOf(key) > -1);
+          const mapped = _.mapKeys(filtered, (value, key) => {
+            return targetMapping[key];
+          });
+
+          return mapped;
+        });
+
+        springCm.connect((err) => {
+          if (err) {
+            return actions.reject(err);
+          }
+
+          springCm.getDocument(mapping.outputPath, (err, doc) => {
+            if (err) {
+              return actions.reject(err);
+            }
+
+            const csvData = csvjson.toCSV(rows, {
+              headers: 'key',
+              delimiter: ','
+            });
+
+            const stream = s2s(csvData);
+
+            springCm.checkInDocument(doc, stream, {
+              filename: `${hospital}.csv`
+            }, (err) => {
+              if (err) {
+                return actions.reject(err);
+              }
+
+              actions.resolve();
+            });
+          });
+        });
+
+        return promise;
+      });
+    });
   }
 
   // Locate and process Oracle extracts in the designated drop folder
