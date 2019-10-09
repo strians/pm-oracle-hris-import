@@ -26,6 +26,9 @@ Example configuration (JSON):
       "mappingColumn": "Business Unit",
       "hospitalMapping": {
         "<BusinessUnit Value>": {
+          "clientId": "<SpringCM Client ID>",
+          "clientSecret": "<SpringCM Client Secret>",
+          "dataCenter": "<SpringCM Data Center>",
           "outputPath": "/Where/File/Goes/In/SpringCM",
           "columnMapping": [
             {
@@ -53,6 +56,9 @@ About configuration settings:
  - hospitalMapping.<hospital>.columnMapping: Array of mapped columns
     - ...columnMapping[].master: Column name in master database table
     - ...columnMapping[].target: Output CSV column name
+ - hospitalMapping.<hospital>.clientId: SpringCM REST API client ID
+ - hospitalMapping.<hospital>.clientSecret: SpringCM REST API client secret
+ - hospitalMapping.<hospital>.dataCenter: SpringCM REST API data center
  - fileDropFolder: Where the nightly Oracle HRIS extracts will land.
 `;
 }
