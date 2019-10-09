@@ -2,38 +2,6 @@ const Sequelize = require('sequelize');
 
 module.exports = {
   load: (sequelize, config) => {
-    const Import = sequelize.define(`${config.mssql.table} - Import`, {
-      'File Name': {
-        type: Sequelize.STRING(200),
-        allowNull: false,
-        unique: `${config.mssql.table}-Import-FileNameIndex`
-      },
-      'Successful': {
-        type: Sequelize.STRING(1),
-        allowNull: false
-      },
-      'Status Description': {
-        type: Sequelize.STRING(1000),
-        allowNull: false
-      },
-      'Rows Processed': {
-        type: Sequelize.INTEGER,
-        allowNull: false
-      },
-      'Active Employees': {
-        type: Sequelize.INTEGER,
-        allowNull: false
-      },
-      'Term Employees': {
-        type: Sequelize.INTEGER,
-        allowNull: false
-      }
-    }, {
-      timestamps: true,
-      createdAt: 'Created At',
-      updatedAt: null
-    });
-
     const Employee = sequelize.define(`${config.mssql.table} - Employee`, {
       'Last Name': {
         type: Sequelize.STRING(100),
@@ -83,7 +51,6 @@ module.exports = {
     });
 
     return {
-      Import,
       Employee
     };
   }
