@@ -43,6 +43,14 @@ module.exports = {
       'BusinessUnit': {
         type: Sequelize.STRING(30),
         allowNull: false
+      },
+      'Legal Entity': {
+        type: Sequelize.STRING(150),
+        allowNull: false
+      },
+      'Facility Code': {
+        type: Sequelize.STRING(20),
+        allowNull: false
       }
     }, {
       timestamps: true,

@@ -70,11 +70,7 @@ class Application {
 
     return async.eachSeries(hospitals, async (hospital) => {
       const mapping = this.config.hospitalMapping[hospital];
-      const masterKeys = mapping.columnMapping.map(m => m.master);
-      const targetMapping = mapping.columnMapping.reduce((result, m) => {
-        result[m.master] = m.target;
-        return result;
-      }, {});
+      const masterKeys = _.uniq(mapping.columnMapping.map(m => m.master));
 
       const springCm = new SpringCM({
         clientId: mapping.clientId,
@@ -96,11 +92,27 @@ class Application {
         // Generate data rows
         const rows = results.map(row => {
           const filtered = _.pickBy(row.dataValues, (value, key) => masterKeys.indexOf(key) > -1);
-          const mapped = _.mapKeys(filtered, (value, key) => {
-            return targetMapping[key];
-          });
 
-          return mapped;
+          return mapping.columnMapping.reduce((result, col) => {
+            switch (col.option) {
+            case 'last4':
+              result[col.target] = filtered[col.master].substr(-4);
+              break;
+            case 'blank':
+              result[col.target] = '';
+              break;
+            default:
+              result[col.target] = filtered[col.master];
+            }
+
+            if (col.map) {
+              let val = result[col.target];
+              let mapped = col.map[val];
+              result[col.target] = _.isNil(mapped) ? val : mapped;
+            }
+
+            return result;
+          });
         });
 
         springCm.connect((err) => {
