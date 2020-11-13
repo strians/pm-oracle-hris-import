@@ -99,7 +99,7 @@ class Application {
               result[col.target] = filtered[col.master].substr(-4);
               break;
             case 'blank':
-              result[col.target] = '';
+              result[col.target] = '---';
               break;
             default:
               result[col.target] = filtered[col.master];
